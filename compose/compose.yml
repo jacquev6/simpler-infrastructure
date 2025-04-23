@@ -1,0 +1,12 @@
+services:
+  fanout:
+    image: jonasal/nginx-certbot:4-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./50-copy-conf.sh:/docker-entrypoint.d/50-copy-conf.sh:ro
+      - ./conf.d:/etc/nginx/conf.d.ro:ro
+      - ../letsencrypt:/etc/letsencrypt
+    environment:
+      - CERTBOT_EMAIL=letsencrypt.org@vincent-jacques.net
