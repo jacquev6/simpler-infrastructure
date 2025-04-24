@@ -18,4 +18,5 @@ rsync \
   ./compose/ \
   $doorman:~/web-server/compose
 
-ssh $doorman "cd web-server/compose; docker compose up --remove-orphans --detach"
+# Using '--force-recreate' so that NGinx-Certbot picks up new sites and generates new certificates
+ssh $doorman "cd web-server/compose; docker compose up --remove-orphans --force-recreate --detach"
