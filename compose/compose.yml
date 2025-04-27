@@ -10,3 +10,107 @@ services:
       - ../letsencrypt:/etc/letsencrypt
     environment:
       - CERTBOT_EMAIL=letsencrypt.org@vincent-jacques.net
+    depends_on:
+      - gabby-frontend
+      - gabby-backend
+      - gabby-adminer
+      - patty-frontend
+      - patty-backend
+      - patty-adminer
+
+  gabby-frontend:
+    image: jacquev6/gabby:20250306-143722-frontend
+  gabby-backend:
+    image: jacquev6/gabby:20250306-143722-backend
+    environment:
+      GABBY_ROOT_URL: https://gabby.vincent-jacques.net
+      GABBY_DATABASE_BACKUPS_URL: s3://jacquev6/gabby/prod/backups
+      GABBY_MAIL_SENDER: "Vincent Jacques <vincent@vincent-jacques.net>"
+    env_file:
+      - gabby-backend.secrets.env
+    depends_on:
+      gabby-db:
+        condition: service_healthy
+  gabby-adminer:
+    image: adminer:4
+    depends_on:
+      gabby-db:
+        condition: service_healthy
+  gabby-db:
+    image: postgres:15
+    volumes:
+      - gabby-db-data:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_USER: gabby
+      POSTGRES_DB: gabby
+    env_file:
+      - gabby-db.secrets.env
+    healthcheck:
+      test: [
+        "CMD",
+        "pg_isready",
+        "--timeout=0",
+        "--dbname=gabby",
+        "--username=gabby",
+      ]
+      start_period: 0s
+      interval: 0.5s
+      timeout: 1s
+      retries: 10
+  # Backup by cron job:
+  # 25 * * * * cd web-server/compose && docker compose exec gabby-backend python -m gabby backup-database
+  # To upgrade Gabby's DB schema:
+  # ssh doorman
+  # cd web-server/compose
+  # docker compose exec --workdir /app/gabby gabby-backend alembic upgrade head
+
+  patty-frontend:
+    image: jacquev6/patty:20250424-161322-frontend
+    # environment:
+    #   PATTY_UNAVAILABLE_UNTIL: "2024-04-27T20:00:00.000Z"
+  patty-backend:
+    image: jacquev6/patty:20250424-161322-backend
+    environment:
+      PATTY_DATABASE_BACKUPS_URL: s3://jacquev6/patty/prod/backups
+    env_file:
+      - patty-backend.secrets.env
+    depends_on:
+      patty-db:
+        condition: service_healthy
+  patty-adminer:
+    image: adminer:4
+    depends_on:
+      patty-db:
+        condition: service_healthy
+  patty-db:
+    image: postgres:15
+    volumes:
+      - patty-db-data:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_USER: patty
+      POSTGRES_DB: patty
+    env_file:
+      - patty-db.secrets.env
+    healthcheck:
+      test: [
+        "CMD",
+        "pg_isready",
+        "--timeout=0",
+        "--dbname=patty",
+        "--username=patty",
+      ]
+      start_period: 0s
+      interval: 0.5s
+      timeout: 1s
+      retries: 10
+  # Backup by cron job:
+  # 16 * * * * cd web-server/compose && docker compose exec patty-backend python -m patty backup-database
+  # To upgrade Patty's DB schema:
+  # ssh doorman
+  # cd web-server/compose
+  # docker compose exec --workdir /app/patty patty-backend alembic upgrade head
+  # docker compose exec patty-backend python -m patty migrate-data
+
+volumes:
+  gabby-db-data:
+  patty-db-data:
