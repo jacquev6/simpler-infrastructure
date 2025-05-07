@@ -24,6 +24,10 @@ services:
 
   gabby-frontend:
     image: jacquev6/gabby:20250306-143722-frontend
+  # To upgrade Gabby's DB schema:
+  # ssh doorman
+  # cd web-server/compose
+  # docker compose exec --workdir /app/gabby gabby-backend alembic upgrade head
   gabby-backend:
     image: jacquev6/gabby:20250306-143722-backend
     environment:
@@ -63,21 +67,32 @@ services:
       retries: 10
   # Backup by cron job:
   # 25 * * * * cd web-server/compose && docker compose exec gabby-backend python -m gabby backup-database
-  # To upgrade Gabby's DB schema:
-  # ssh doorman
-  # cd web-server/compose
-  # docker compose exec --workdir /app/gabby gabby-backend alembic upgrade head
 
   patty-frontend:
-    image: jacquev6/patty:20250424-161322-frontend
+    image: jacquev6/patty:20250507-151639-frontend
     # environment:
-    #   PATTY_UNAVAILABLE_UNTIL: "2024-04-27T20:00:00.000Z"
+    #   PATTY_UNAVAILABLE_UNTIL: "2024-05-07T16:30:00.000+0200"
+  # To upgrade Patty's DB schema:
+  # ssh doorman
+  # cd web-server/compose
+  # docker compose exec --workdir /app/patty patty-backend alembic upgrade head
+  # docker compose exec patty-backend python -m patty migrate-data
   patty-backend:
-    image: jacquev6/patty:20250424-161322-backend
+    image: jacquev6/patty:20250507-151639-backend
     environment:
       PATTY_DATABASE_BACKUPS_URL: s3://jacquev6/patty/prod/backups
     env_file:
       - patty-backend.secrets.env
+    depends_on:
+      patty-db:
+        condition: service_healthy
+  patty-submission-daemon:
+    image: jacquev6/patty:20250507-151639-backend
+    environment:
+      PATTY_DATABASE_BACKUPS_URL: s3://jacquev6/patty/prod/backups
+    env_file:
+      - patty-backend.secrets.env
+    command: ["python", "-m", "patty", "run-submission-daemon"]
     depends_on:
       patty-db:
         condition: service_healthy
@@ -109,11 +124,6 @@ services:
       retries: 10
   # Backup by cron job:
   # 16 * * * * cd web-server/compose && docker compose exec patty-backend python -m patty backup-database
-  # To upgrade Patty's DB schema:
-  # ssh doorman
-  # cd web-server/compose
-  # docker compose exec --workdir /app/patty patty-backend alembic upgrade head
-  # docker compose exec patty-backend python -m patty migrate-data
 
 volumes:
   gabby-db-data:

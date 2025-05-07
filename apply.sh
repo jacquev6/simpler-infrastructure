@@ -18,5 +18,5 @@ rsync \
   ./compose/ \
   $doorman:~/web-server/compose
 
-# Using '--force-recreate' so that NGinx-Certbot picks up new sites and generates new certificates
-ssh $doorman "cd web-server/compose; docker compose up --remove-orphans --force-recreate --detach"
+# Add '--force-recreate' when added a new site so that NGinx-Certbot generates new certificates on startup
+ssh $doorman "cd web-server/compose; docker compose up --remove-orphans --detach"
