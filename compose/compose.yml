@@ -69,28 +69,26 @@ services:
   # 25 * * * * cd web-server/compose && docker compose exec gabby-backend python -m gabby backup-database
 
   patty-frontend:
-    image: jacquev6/patty:20250507-151639-frontend
+    image: jacquev6/patty:20250521-115419-frontend
     # environment:
-    #   PATTY_UNAVAILABLE_UNTIL: "2024-05-07T16:30:00.000+0200"
+    #   PATTY_UNAVAILABLE_UNTIL: "2024-05-21T14:00:00.000+0200"
   # To upgrade Patty's DB schema:
   # ssh doorman
   # cd web-server/compose
   # docker compose exec --workdir /app/patty patty-backend alembic upgrade head
   # docker compose exec patty-backend python -m patty migrate-data
   patty-backend:
-    image: jacquev6/patty:20250507-151639-backend
-    environment:
-      PATTY_DATABASE_BACKUPS_URL: s3://jacquev6/patty/prod/backups
+    image: jacquev6/patty:20250521-115419-backend
     env_file:
+      - patty-backend.env
       - patty-backend.secrets.env
     depends_on:
       patty-db:
         condition: service_healthy
   patty-submission-daemon:
-    image: jacquev6/patty:20250507-151639-backend
-    environment:
-      PATTY_DATABASE_BACKUPS_URL: s3://jacquev6/patty/prod/backups
+    image: jacquev6/patty:20250521-115419-backend
     env_file:
+      - patty-backend.env
       - patty-backend.secrets.env
     command: ["python", "-m", "patty", "run-submission-daemon"]
     depends_on:
