@@ -7,7 +7,7 @@ set -o nounset
 doorman=192.168.1.101  # Fixed address given by permanent DHCP lease configured on Freebox router
 # Port forwarding for ports 80 and 443 to 'doorman' is configured on the Freebox router
 
-ssh $doorman mkdir -p ~/web-server/letsencrypt
+ssh $doorman mkdir -p ~/web-server/letsencrypt ~/web-server/patty/classification-models
 
 rsync \
   --verbose \
