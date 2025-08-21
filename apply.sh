@@ -20,3 +20,5 @@ rsync \
 
 # Add '--force-recreate' when added a new site so that NGinx-Certbot generates new certificates on startup
 ssh $doorman "cd web-server/compose; docker compose up --remove-orphans --detach"
+# ssh $doorman "cd web-server/compose; docker compose exec --workdir /app/patty patty-backend alembic upgrade head"
+# ssh $doorman "cd web-server/compose; docker compose exec patty-backend python -m patty migrate-data"
