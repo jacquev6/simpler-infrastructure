@@ -12,12 +12,6 @@ services:
       - CERTBOT_EMAIL=letsencrypt.org@vincent-jacques.net
     depends_on:
       - draw-turks-head-demo
-      - gabby-frontend
-      - gabby-backend
-      - gabby-adminer
-      - patty-frontend
-      - patty-backend
-      - patty-adminer
 
   draw-turks-head-demo:
     image: jacquev6/draw-turks-head-demo:20230310-150439
